@@ -1,14 +1,9 @@
 {
   // Linter Settings
-  "typescript.validate.enable": false,
-  "javascript.validate.enable": false,
-  "eslint.validate": [
-    "typescript",
-    "typescriptreact"
-  ],
-  "eslint.workingDirectories": [
-    "./src"
-  ],
+  "typescript.validate.enable": true,
+  "javascript.validate.enable": true,
+  "eslint.validate": ["typescript", "typescriptreact"],
+  "eslint.workingDirectories": ["./src"],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
@@ -25,7 +20,8 @@
     {
       "pattern": "**/*.ts",
       "snippet": "ns-template"
-    },
+    }
   ],
-  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true
 }
