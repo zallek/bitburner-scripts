@@ -1,6 +1,5 @@
 import { NS } from "@ns";
 import { listWorkers, listTargets, Target, Worker } from "/lib/servers";
-import { bootScripts } from "/scripts/boot";
 import { listRunningProcesses, listRunningProcessesOnWorker, NO_TARGET } from "/lib/process";
 
 const weakenScriptName = "/weaken.js";
@@ -14,8 +13,7 @@ export async function main(ns: NS): Promise<void> {
   while (true) {
     const shareScriptRam = ns.getScriptRam(shareScriptName);
 
-    const homeReservedRam = bootScripts.reduce((acc, scriptName) => acc + ns.getScriptRam(scriptName), 0);
-    const workers = listWorkers(ns, homeReservedRam);
+    const workers = listWorkers(ns);
     const targets = listTargets(ns);
 
     for (const target of targets) {
@@ -46,7 +44,7 @@ export async function main(ns: NS): Promise<void> {
     }
 
     for (const worker of workers) {
-      const nbShareThreads = Math.floor((worker.ramFree * 0.95) / shareScriptRam);
+      const nbShareThreads = Math.floor(worker.ramFree / shareScriptRam);
       if (nbShareThreads > 0) {
         execOnWorker(ns, "SHARE", shareScriptName, nbShareThreads, nbShareThreads, worker);
       }

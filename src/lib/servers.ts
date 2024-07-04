@@ -1,5 +1,6 @@
 import { NS, Server as NSServer } from "@ns";
 import { openAllServerPorts } from "/lib/ports";
+import { bootScripts } from "/scripts/boot";
 
 const MAX_DEPTH = 20;
 
@@ -52,7 +53,9 @@ export interface Worker extends Server {
   ramFree: number;
 }
 
-export function listWorkers(ns: NS, homeReservedRam: number): Worker[] {
+export function listWorkers(ns: NS): Worker[] {
+  const homeReservedRam = bootScripts.reduce((acc, scriptName) => acc + ns.getScriptRam(scriptName), 0) + 5;
+
   const workers: Worker[] = [];
   const servers = listServers(ns);
 

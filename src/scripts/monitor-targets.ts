@@ -9,7 +9,7 @@ export async function main(ns: NS): Promise<void> {
     ns.clearLog();
 
     const targets = listTargets(ns);
-    const workers = listWorkers(ns, 0);
+    const workers = listWorkers(ns);
     const runningProcesses = listRunningProcesses(ns, workers);
 
     const table = [

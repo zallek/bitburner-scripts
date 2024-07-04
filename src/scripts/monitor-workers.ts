@@ -8,7 +8,7 @@ export async function main(ns: NS): Promise<void> {
     ns.disableLog("ALL");
     ns.clearLog();
 
-    const workers = listWorkers(ns, 0);
+    const workers = listWorkers(ns);
     workers.sort((a, b) => {
       if (a.hostname == "home") return -1;
       if (b.hostname == "home") return 1;
@@ -20,12 +20,12 @@ export async function main(ns: NS): Promise<void> {
         const runningProcesses = listRunningProcessesOnWorker(ns, worker);
         return [
           worker.hostname,
-          ns.formatRam(worker.maxRam),
-          formatWorkerUsageBar(worker),
-          Object.values(runningProcesses["hack.js"] || {}).reduce((acc, v) => acc + v, 0),
-          Object.values(runningProcesses["weaken.js"] || {}).reduce((acc, v) => acc + v, 0),
-          Object.values(runningProcesses["grow.js"] || {}).reduce((acc, v) => acc + v, 0),
-          Object.values(runningProcesses["share.js"] || {}).reduce((acc, v) => acc + v, 0),
+          ns.formatRam(worker.maxRam, 0),
+          formatWorkerUsageBar(ns, worker),
+          Object.values(runningProcesses["hack.js"] || {}).reduce((acc, v) => acc + v, 0) || "",
+          Object.values(runningProcesses["weaken.js"] || {}).reduce((acc, v) => acc + v, 0) || "",
+          Object.values(runningProcesses["grow.js"] || {}).reduce((acc, v) => acc + v, 0) || "",
+          Object.values(runningProcesses["share.js"] || {}).reduce((acc, v) => acc + v, 0) || "",
         ];
       }),
     ];
@@ -35,7 +35,16 @@ export async function main(ns: NS): Promise<void> {
   }
 }
 
-function formatWorkerUsageBar(worker: Worker) {
+function formatWorkerRam(ns: NS, worker: Worker): string {
+  const usableRam = Math.max(worker.maxRam - worker.ramReserved, 0);
+  let text = ns.formatRam(usableRam, 0);
+  if (worker.ramReserved) {
+    text += ` (+${ns.formatRam(Math.min(worker.ramReserved, worker.maxRam), 0)})`;
+  }
+  return text;
+}
+
+function formatWorkerUsageBar(ns: NS, worker: Worker): string {
   const nbSegments = 25;
   let text = "";
   for (let i = 0; i < (worker.ramUsed / worker.maxRam) * nbSegments; i++) {

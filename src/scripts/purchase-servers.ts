@@ -1,5 +1,4 @@
 import { NS } from "@ns";
-import { listWorkers } from "/lib/servers";
 
 export async function main(ns: NS): Promise<void> {
   // Continuously try to purchase servers until we've reached the maximum
@@ -30,13 +29,6 @@ function purchaseOrUpgradeServers(ns: NS): boolean {
         return false;
       }
     }
-    return false;
-  }
-
-  const workers = listWorkers(ns, 0);
-  const pctUsage = workers.reduce((acc, w) => acc + w.ramUsed, 0) / workers.reduce((acc, w) => acc + w.maxRam, 0);
-
-  if (pctUsage < 0.5) {
     return false;
   }
 
