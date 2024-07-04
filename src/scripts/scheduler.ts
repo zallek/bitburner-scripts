@@ -2,10 +2,10 @@ import { NS } from "@ns";
 import { listWorkers, listTargets, Target, Worker } from "/lib/servers";
 import { listRunningProcesses, listRunningProcessesOnWorker, NO_TARGET } from "/lib/process";
 
-const weakenScriptName = "/weaken.js";
-const growScriptName = "/grow.js";
-const hackScriptName = "/hack.js";
-const shareScriptName = "/share.js";
+const weakenScriptName = "weaken.js";
+const growScriptName = "grow.js";
+const hackScriptName = "hack.js";
+const shareScriptName = "share.js";
 
 export async function main(ns: NS): Promise<void> {
   ns.disableLog("ALL");
@@ -163,7 +163,9 @@ function execOnAllWorkers(
   }
 
   if (nbNewThreadsTotal > 0) {
-    log(ns, label, `${target.hostname} (nbThreads ${nbNewThreadsTotal}/${nbThreads}) (wait ${waitMs})`);
+    const counter =
+      maxNbThreads !== null ? `${nbRunningsThreads}/${maxNbThreads}` : `${nbNewThreadsTotal}/${nbThreads}`;
+    log(ns, label, `${target.hostname} (${counter}) (wait ${waitMs})`);
   }
   return nbNewThreadsTotal;
 }
@@ -179,7 +181,7 @@ function execOnWorker(
   const scriptRam = ns.getScriptRam(scriptName);
 
   const runningProcesses = listRunningProcessesOnWorker(ns, worker);
-  const nbRunningsThreads = runningProcesses[scriptName]?.[NO_TARGET] || 0;
+  let nbRunningsThreads = runningProcesses[scriptName]?.[NO_TARGET] || 0;
 
   let nbNewThreads = Math.min(Math.floor(worker.ramFree / scriptRam), nbThreads);
   if (maxNbThreads != null) {
@@ -190,10 +192,12 @@ function execOnWorker(
     ns.scp(scriptName, worker.hostname);
     ns.exec(scriptName, worker.hostname, nbNewThreads);
     worker.ramFree = worker.ramFree - scriptRam * nbNewThreads;
+    nbRunningsThreads = nbRunningsThreads + nbNewThreads;
   }
 
   if (nbNewThreads > 0) {
-    log(ns, label, `${worker.hostname} (nbThreads ${nbNewThreads}/${nbThreads})`);
+    const counter = maxNbThreads !== null ? `${nbRunningsThreads}/${maxNbThreads}` : `${nbNewThreads}/${nbThreads}`;
+    log(ns, label, `${worker.hostname} (${counter})`);
   }
   return nbNewThreads;
 }
