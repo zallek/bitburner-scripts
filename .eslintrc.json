@@ -11,11 +11,14 @@
     "sourceType": "module"
   },
   "plugins": ["@typescript-eslint"],
-  "ignorePatterns": [
-    "node_modules/**",
-    "build/**",
-    "dist/**",
-    "NetscriptDefinitions.d.ts"
-  ],
-  "rules": {}
+  "ignorePatterns": ["node_modules/**", "build/**", "dist/**", "NetscriptDefinitions.d.ts"],
+  "rules": {
+    "no-constant-condition": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "args": "none"
+      }
+    ]
+  }
 }
