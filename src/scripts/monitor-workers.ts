@@ -22,10 +22,10 @@ export async function main(ns: NS): Promise<void> {
           worker.hostname,
           ns.formatRam(worker.maxRam),
           formatWorkerUsageBar(worker),
-          Object.values(runningProcesses["scripts/hack.js"] || {}).reduce((acc, v) => acc + v, 0),
-          Object.values(runningProcesses["scripts/weaken.js"] || {}).reduce((acc, v) => acc + v, 0),
-          Object.values(runningProcesses["scripts/grow.js"] || {}).reduce((acc, v) => acc + v, 0),
-          Object.values(runningProcesses["scripts/share.js"] || {}).reduce((acc, v) => acc + v, 0),
+          Object.values(runningProcesses["hack.js"] || {}).reduce((acc, v) => acc + v, 0),
+          Object.values(runningProcesses["weaken.js"] || {}).reduce((acc, v) => acc + v, 0),
+          Object.values(runningProcesses["grow.js"] || {}).reduce((acc, v) => acc + v, 0),
+          Object.values(runningProcesses["share.js"] || {}).reduce((acc, v) => acc + v, 0),
         ];
       }),
     ];

@@ -3,10 +3,10 @@ import { listWorkers, listTargets, Target, Worker } from "/lib/servers";
 import { bootScripts } from "/scripts/boot";
 import { listRunningProcesses, listRunningProcessesOnWorker, NO_TARGET } from "/lib/process";
 
-const weakenScriptName = "scripts/weaken.js";
-const growScriptName = "scripts/grow.js";
-const hackScriptName = "scripts/hack.js";
-const shareScriptName = "scripts/share.js";
+const weakenScriptName = "/weaken.js";
+const growScriptName = "/grow.js";
+const hackScriptName = "/hack.js";
+const shareScriptName = "/share.js";
 
 export async function main(ns: NS): Promise<void> {
   ns.disableLog("ALL");

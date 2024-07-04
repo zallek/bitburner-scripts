@@ -20,9 +20,9 @@ export async function main(ns: NS): Promise<void> {
         ns.formatNumber(target.hackAmountBySeconds, 0),
         ns.formatNumber(target.remainingDifficulty),
         ns.formatPercent(target.moneyAvailable / target.moneyMax, 2),
-        formatRunningProcesses(target.hackReady, runningProcesses["scripts/hack.js"]?.[target.hostname]),
-        formatRunningProcesses(target.weakenNeeded, runningProcesses["scripts/weaken.js"]?.[target.hostname]),
-        formatRunningProcesses(target.growNeeded, runningProcesses["scripts/grow.js"]?.[target.hostname]),
+        formatRunningProcesses(target.hackReady, runningProcesses["hack.js"]?.[target.hostname]),
+        formatRunningProcesses(target.weakenNeeded, runningProcesses["weaken.js"]?.[target.hostname]),
+        formatRunningProcesses(target.growNeeded, runningProcesses["grow.js"]?.[target.hostname]),
       ]),
     ];
     ns.print(markdownTable(table, { align: ["l", "r", "r", "r"] }));

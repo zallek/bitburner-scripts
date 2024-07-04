@@ -15,6 +15,7 @@ export async function main(ns: NS): Promise<void> {
     const table = [
       [
         `servers ${servers.length}`,
+        "Organization",
         `hackingLevel ${Math.max(...servers.map((s) => s.requiredHackingSkill || 0))}`,
         "depth",
         "hasAdminRights",
@@ -22,6 +23,7 @@ export async function main(ns: NS): Promise<void> {
       ...servers.map((server) => {
         return [
           server.hostname,
+          server.organizationName,
           (server.requiredHackingSkill && hackingLevel >= server.requiredHackingSkill ? "■ " : "  ") +
             server.requiredHackingSkill,
           server.path.length,

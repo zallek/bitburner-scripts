@@ -6,7 +6,6 @@ import { subarrayWithMaximumSum } from "/contracts/subarray-with-maximum-sum";
 import { totalWaysToSum } from "/contracts/total-ways-to-sum";
 import { totalWaysToSum2 } from "/contracts/total-ways-to-sum-2";
 import { mergeOverlappingIntervals } from "/contracts/merge-overlapping-intervals";
-import { arg } from "/lib/arg";
 
 type CodingContractAnswer = any;
 type CodingContractFunc = (ns: NS, input: CodingContractData) => CodingContractAnswer | Promise<CodingContractAnswer>;
@@ -27,8 +26,8 @@ export const contractMappingNotSolved: Record<string, CodingContractFunc> = {
 export async function main(ns: NS): Promise<void> {
   ns.tail();
 
-  const hostname = arg<string>(ns.args[0]);
-  const confirmToSend = arg<string>(ns.args[1]) == "-c";
+  const hostname = ns.args[0] as string;
+  const confirmToSend = ns.args[1] === "-c";
 
   const contractFiles = ns.ls(hostname, ".cct");
   if (contractFiles.length == 0) {

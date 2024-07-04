@@ -1,5 +1,4 @@
 import { NS } from "@ns";
-import { arg } from "/lib/arg";
 
 interface Stage {
   execute: (ns: NS) => Promise<void>;
@@ -25,7 +24,7 @@ const stages: Stage[] = [
 ];
 
 export async function main(ns: NS): Promise<void> {
-  const factionName = arg<string>(ns.args[0]);
+  const factionName = ns.args[0] as string;
   let nextStage = 0;
 
   while (true) {

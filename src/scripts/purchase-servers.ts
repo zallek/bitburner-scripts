@@ -23,13 +23,14 @@ function purchaseOrUpgradeServers(ns: NS): boolean {
 
   if (servers.length < ns.getPurchasedServerLimit()) {
     // Check if we have enough money to purchase a server
-    if (homeMoney > ns.getPurchasedServerCost(8)) {
+    if (homeMoney > ns.getPurchasedServerCost(2)) {
       const server = "pserv-" + String(servers.length).padStart(3, "0");
-      if (ns.purchaseServer(server, 8)) {
-        ns.print(`Purchased server ${server} 8GB`);
+      if (ns.purchaseServer(server, 2)) {
+        ns.print(`Purchased server ${server} 2GB`);
         return false;
       }
     }
+    return false;
   }
 
   const workers = listWorkers(ns, 0);
