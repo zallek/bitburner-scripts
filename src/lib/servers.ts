@@ -33,7 +33,7 @@ export function listServers(ns: NS): Server[] {
           if (allPortsOpen) {
             ns.nuke(server.hostname);
           }
-          ns.nuke(server.hostname);
+          continue;
         }
 
         servers.push(server);

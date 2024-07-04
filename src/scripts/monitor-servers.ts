@@ -17,6 +17,7 @@ export async function main(ns: NS): Promise<void> {
         `servers ${servers.length}`,
         `hackingLevel ${Math.max(...servers.map((s) => s.requiredHackingSkill || 0))}`,
         "depth",
+        "hasAdminRights",
       ],
       ...servers.map((server) => {
         return [
@@ -24,6 +25,7 @@ export async function main(ns: NS): Promise<void> {
           (server.requiredHackingSkill && hackingLevel >= server.requiredHackingSkill ? "■ " : "  ") +
             server.requiredHackingSkill,
           server.path.length,
+          server.hasAdminRights ? "" : "No",
         ];
       }),
     ];
