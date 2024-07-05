@@ -3,7 +3,9 @@ import { Worker } from "/lib/servers";
 
 export const NO_TARGET = "#NO_TARGET";
 
-type RunningProcessByTarget = Record<string, Record<string, number>>;
+type ScriptName = string;
+type Target = string;
+type RunningProcessByTarget = Record<ScriptName, Record<Target, number>>;
 
 export function listRunningProcesses(ns: NS, workers: Worker[]): RunningProcessByTarget {
   const runningScripts: RunningProcessByTarget = {};

@@ -16,37 +16,56 @@ export async function main(ns: NS): Promise<void> {
     const workers = listWorkers(ns);
     const targets = listTargets(ns);
 
+    let clusterFull = false;
     for (const target of targets) {
       if (target.hackReady) {
         const hackNbThreads = Math.floor((target.moneyAvailable / 2 / target.hackAmount) * target.hackChance);
-        hackTarget(ns, hackNbThreads, hackNbThreads, workers, target);
-      }
-
-      if (target.weakenNeeded) {
-        // TODO compute according to numbers of cores - weakenAnalyze
-        const weakenNbThreads = Math.floor((target.hackDifficulty - target.minDifficulty) / 0.05);
-        weakenTarget(ns, weakenNbThreads, weakenNbThreads, workers, target);
-      }
-
-      if (target.growNeeded) {
-        // TODO compute according to number of cores
-        const growNbThreads = Math.floor(
-          ns.growthAnalyze(target.hostname, target.moneyAvailable ? target.moneyMax / target.moneyAvailable : 10)
-        );
-        growTarget(ns, growNbThreads, growNbThreads, workers, target);
+        const [_, hackNbRunningsThreads] = hackTarget(ns, hackNbThreads, hackNbThreads, workers, target);
+        if (hackNbRunningsThreads < hackNbThreads) {
+          clusterFull = true;
+          break;
+        }
       }
     }
 
-    // Fill remaining workers with hacks
-    for (const target of targets) {
-      const fillHackNbThreads = Math.floor((target.moneyAvailable / 5 / target.hackAmount) * target.hackChance);
-      hackTarget(ns, fillHackNbThreads, fillHackNbThreads, workers, target, null, "FILL-");
+    if (!clusterFull) {
+      for (const target of targets) {
+        if (target.weakenNeeded) {
+          // TODO compute according to numbers of cores - weakenAnalyze
+          const weakenNbThreads = Math.floor((target.hackDifficulty - target.minDifficulty) / 0.05);
+          const [_, weakenNbRunningsThreads] = weakenTarget(ns, weakenNbThreads, weakenNbThreads, workers, target);
+          if (weakenNbRunningsThreads < weakenNbThreads) {
+            clusterFull = true;
+            break;
+          }
+        }
+
+        if (target.growNeeded) {
+          // TODO compute according to number of cores
+          const growNbThreads = Math.floor(
+            ns.growthAnalyze(target.hostname, target.moneyAvailable ? target.moneyMax / target.moneyAvailable : 10)
+          );
+          const [_, growNbRunningsThreads] = growTarget(ns, growNbThreads, growNbThreads, workers, target);
+          if (growNbRunningsThreads < growNbThreads) {
+            clusterFull = true;
+            break;
+          }
+        }
+      }
     }
 
-    for (const worker of workers) {
-      const nbShareThreads = Math.floor(worker.ramFree / shareScriptRam);
-      if (nbShareThreads > 0) {
-        execOnWorker(ns, "SHARE", shareScriptName, nbShareThreads, nbShareThreads, worker);
+    if (!clusterFull) {
+      // Fill remaining workers with hacks
+      for (const target of targets) {
+        const fillHackNbThreads = Math.floor((target.moneyAvailable / 5 / target.hackAmount) * target.hackChance);
+        hackTarget(ns, fillHackNbThreads, fillHackNbThreads, workers, target, null, "FILL-");
+      }
+
+      for (const worker of workers) {
+        const nbShareThreads = Math.floor(worker.ramFree / shareScriptRam);
+        if (nbShareThreads > 0) {
+          execOnWorker(ns, "SHARE", shareScriptName, nbShareThreads, nbShareThreads, worker);
+        }
       }
     }
 
@@ -63,7 +82,17 @@ function weakenTarget(
   waitMs: number | null = null,
   parent = ""
 ) {
-  execOnAllWorkers(ns, `${parent}WEAKEN`, weakenScriptName, nbThreads, maxNbThreads, workers, target, waitMs);
+  const [weakenNbNewThreads, weakenNbRunningsThreads] = execOnAllWorkers(
+    ns,
+    `${parent}WEAKEN`,
+    weakenScriptName,
+    nbThreads,
+    maxNbThreads,
+    workers,
+    target,
+    waitMs
+  );
+  return [weakenNbNewThreads, weakenNbRunningsThreads];
 }
 
 function growTarget(
@@ -75,7 +104,7 @@ function growTarget(
   waitMs: number | null = null,
   parent = ""
 ) {
-  const growNbThreads = execOnAllWorkers(
+  const [growNbNewThreads, growNbRunningsThreads] = execOnAllWorkers(
     ns,
     `${parent}GROW`,
     growScriptName,
@@ -86,13 +115,15 @@ function growTarget(
     waitMs
   );
 
-  if (growNbThreads > 0) {
-    const securityIncrease = ns.growthAnalyzeSecurity(growNbThreads, target.hostname);
+  if (growNbNewThreads > 0) {
+    const securityIncrease = ns.growthAnalyzeSecurity(growNbNewThreads, target.hostname);
     const weakenNbThreads = Math.floor(securityIncrease / 0.05);
     const weakenWaitMs = target.growTime - target.weakenTime;
     log(ns, "GROW-WEAKEN-DELAY", `${weakenWaitMs}`);
     weakenTarget(ns, weakenNbThreads, null, workers, target, Math.max(weakenWaitMs, 0), "GROW-");
   }
+
+  return [growNbNewThreads, growNbRunningsThreads];
 }
 
 function hackTarget(
@@ -104,7 +135,7 @@ function hackTarget(
   waitMs: number | null = null,
   parent = ""
 ) {
-  const hackNbThreads = execOnAllWorkers(
+  const [hackNbNewThreads, hackNbRunningsThreads] = execOnAllWorkers(
     ns,
     `${parent}HACK`,
     hackScriptName,
@@ -114,14 +145,15 @@ function hackTarget(
     target,
     waitMs
   );
-  if (hackNbThreads > 0) {
-    const securityIncrease = ns.hackAnalyzeSecurity(hackNbThreads, target.hostname);
+
+  if (hackNbNewThreads > 0) {
+    const securityIncrease = ns.hackAnalyzeSecurity(hackNbNewThreads, target.hostname);
     const weakenNbThreads = Math.floor(securityIncrease / 0.05);
     const weakenWaitMs = target.hackTime - target.weakenTime;
     log(ns, "HACK-WEAKEN-DELAY", `${weakenWaitMs}`);
     weakenTarget(ns, weakenNbThreads, null, workers, target, Math.max(weakenWaitMs, 0), "HACK-");
 
-    const moneyStolen = hackNbThreads * target.hackAmount * target.hackChance;
+    const moneyStolen = hackNbNewThreads * target.hackAmount * target.hackChance;
     const growNbThreads = Math.floor(
       ns.growthAnalyze(target.hostname, target.moneyAvailable / (target.moneyAvailable - moneyStolen))
     );
@@ -129,6 +161,8 @@ function hackTarget(
     log(ns, "HACK-GROW-DELAY", `${growWaitMs}`);
     growTarget(ns, growNbThreads, null, workers, target, Math.max(growWaitMs, 0), "HACK-");
   }
+
+  return [hackNbNewThreads, hackNbRunningsThreads];
 }
 
 function execOnAllWorkers(
@@ -167,7 +201,7 @@ function execOnAllWorkers(
       maxNbThreads !== null ? `${nbRunningsThreads}/${maxNbThreads}` : `${nbNewThreadsTotal}/${nbThreads}`;
     log(ns, label, `${target.hostname} (${counter}) (wait ${waitMs})`);
   }
-  return nbNewThreadsTotal;
+  return [nbNewThreadsTotal, nbRunningsThreads];
 }
 
 function execOnWorker(
@@ -199,7 +233,7 @@ function execOnWorker(
     const counter = maxNbThreads !== null ? `${nbRunningsThreads}/${maxNbThreads}` : `${nbNewThreads}/${nbThreads}`;
     log(ns, label, `${worker.hostname} (${counter})`);
   }
-  return nbNewThreads;
+  return [nbNewThreads, nbRunningsThreads];
 }
 
 function log(ns: NS, label: string, msg: string) {

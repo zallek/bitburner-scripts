@@ -95,7 +95,9 @@ export interface Target extends Server {
   hackAmount: number;
   hackChance: number;
   hackAmountBySeconds: number;
+  hackAmountBySecondsMax: number;
   hackReady: boolean;
+  alpha: number;
 }
 
 export function listTargets(ns: NS): Target[] {
@@ -131,16 +133,21 @@ export function listTargets(ns: NS): Target[] {
     const weakenNeeded = remainingDifficulty > 0.1;
 
     const growTime = ns.getGrowTime(server.hostname);
-    const growNeeded = server.moneyAvailable < server.moneyMax * 0.99;
+    const growNeeded = server.moneyAvailable < server.moneyMax * 0.99 && remainingDifficulty < 5;
 
     const hackTime = ns.getHackTime(server.hostname);
     const hackPct = ns.hackAnalyze(server.hostname);
     const hackChance = ns.hackAnalyzeChance(server.hostname);
     const hackAmount = hackPct * server.moneyAvailable;
     const hackAmountBySeconds = (hackAmount * hackChance) / (hackTime / 1000);
+    const hackAmountBySecondsMax = (hackPct * server.moneyMax * hackChance) / (hackTime / 1000); // TODO: we should use HackingFormulas to compute real maxHackChance and minHackTime
     const hackReady =
       (remainingDifficulty < 2 && server.moneyAvailable > server.moneyMax * 0.8) ||
-      hackAmountBySeconds / homeMoney > 0.001;
+      (hackAmountBySeconds / homeMoney > 0.001 &&
+        remainingDifficulty < 5 &&
+        server.moneyAvailable > server.moneyMax * 0.5);
+
+    const hackFactor = (Math.sqrt(server.serverGrowth || 0) * hackAmountBySeconds) / (server.requiredHackingSkill || 1);
 
     targets.push({
       ...server,
@@ -157,10 +164,12 @@ export function listTargets(ns: NS): Target[] {
       hackAmount: hackAmount,
       hackChance: hackChance,
       hackAmountBySeconds: hackAmountBySeconds,
+      hackAmountBySecondsMax: hackAmountBySecondsMax,
       hackReady: hackReady,
+      alpha: hackFactor,
     });
   }
 
-  targets.sort((a, b) => (b.hackAmountBySeconds ?? 0) - (a.hackAmountBySeconds ?? 0));
+  targets.sort((a, b) => b.alpha - a.alpha);
   return targets;
 }
