@@ -1,7 +1,7 @@
 import { NS } from "@ns";
 import { markdownTable } from "/lib/markdown-table";
-import { listTargets, listWorkers } from "/lib/servers";
 import { listRunningProcesses } from "/lib/process";
+import { listTargets, listWorkers } from "/lib/servers";
 
 export async function main(ns: NS): Promise<void> {
   while (true) {

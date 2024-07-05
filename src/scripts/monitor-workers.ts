@@ -1,7 +1,7 @@
 import { NS } from "@ns";
-import { listWorkers, Worker } from "/lib/servers";
 import { markdownTable } from "/lib/markdown-table";
 import { listRunningProcessesOnWorker } from "/lib/process";
+import { listWorkers, Worker } from "/lib/servers";
 
 export async function main(ns: NS): Promise<void> {
   while (true) {
@@ -33,15 +33,6 @@ export async function main(ns: NS): Promise<void> {
 
     await ns.sleep(1000);
   }
-}
-
-function formatWorkerRam(ns: NS, worker: Worker): string {
-  const usableRam = Math.max(worker.maxRam - worker.ramReserved, 0);
-  let text = ns.formatRam(usableRam, 0);
-  if (worker.ramReserved) {
-    text += ` (+${ns.formatRam(Math.min(worker.ramReserved, worker.maxRam), 0)})`;
-  }
-  return text;
 }
 
 function formatWorkerUsageBar(ns: NS, worker: Worker): string {

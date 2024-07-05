@@ -1,6 +1,6 @@
 import { NS } from "@ns";
-import { listWorkers, listTargets, Target, Worker } from "/lib/servers";
 import { listRunningProcesses, listRunningProcessesOnWorker, NO_TARGET } from "/lib/process";
+import { listTargets, listWorkers, Target, Worker } from "/lib/servers";
 
 const weakenScriptName = "weaken.js";
 const growScriptName = "grow.js";

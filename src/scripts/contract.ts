@@ -1,12 +1,12 @@
 import { AutocompleteData, CodingContractData, NS, ScriptArg } from "@ns";
+import { algorithmStockTrader } from "/contracts/algorithm-stock-trader";
 import { algorithmStockTrader2 } from "/contracts/algorithm-stock-trader-2";
 import { algorithmStockTrader3 } from "/contracts/algorithm-stock-trader-3";
+import { mergeOverlappingIntervals } from "/contracts/merge-overlapping-intervals";
 import { proper2coloringOfAGraph } from "/contracts/proper-2-coloring-of-a-graph";
 import { subarrayWithMaximumSum } from "/contracts/subarray-with-maximum-sum";
 import { totalWaysToSum } from "/contracts/total-ways-to-sum";
 import { totalWaysToSum2 } from "/contracts/total-ways-to-sum-2";
-import { mergeOverlappingIntervals } from "/contracts/merge-overlapping-intervals";
-import { algorithmStockTrader } from "/contracts/algorithm-stock-trader";
 
 type CodingContractAnswer = any;
 type CodingContractFunc = (ns: NS, input: CodingContractData) => CodingContractAnswer | Promise<CodingContractAnswer>;
