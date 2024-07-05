@@ -6,11 +6,13 @@ import { subarrayWithMaximumSum } from "/contracts/subarray-with-maximum-sum";
 import { totalWaysToSum } from "/contracts/total-ways-to-sum";
 import { totalWaysToSum2 } from "/contracts/total-ways-to-sum-2";
 import { mergeOverlappingIntervals } from "/contracts/merge-overlapping-intervals";
+import { algorithmStockTrader } from "/contracts/algorithm-stock-trader";
 
 type CodingContractAnswer = any;
 type CodingContractFunc = (ns: NS, input: CodingContractData) => CodingContractAnswer | Promise<CodingContractAnswer>;
 
 export const contractMapping: Record<string, CodingContractFunc> = {
+  "Algorithmic Stock Trader I": algorithmStockTrader,
   "Algorithmic Stock Trader II": algorithmStockTrader2,
   "Algorithmic Stock Trader III": algorithmStockTrader3,
   "Proper 2-Coloring of a Graph": proper2coloringOfAGraph,
