@@ -4,8 +4,9 @@ import { listServers } from "/lib/servers";
 import { contractMapping } from "/scripts/contract";
 
 export async function main(ns: NS): Promise<void> {
+  ns.disableLog("ALL");
+
   while (true) {
-    ns.disableLog("ALL");
     ns.clearLog();
 
     const servers = listServers(ns);

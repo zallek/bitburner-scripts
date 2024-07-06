@@ -1,13 +1,10 @@
 import { NS } from "@ns";
 
 export async function main(ns: NS): Promise<void> {
-  // Continuously try to purchase servers until we've reached the maximum
-  // amount of servers
+  ns.disableLog("ALL");
   let allUpgraded = false;
 
   while (!allUpgraded) {
-    ns.disableLog("ALL");
-
     allUpgraded = purchaseOrUpgradeServers(ns);
 
     await ns.sleep(1000);

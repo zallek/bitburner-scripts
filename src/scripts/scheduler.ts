@@ -57,12 +57,14 @@ export async function main(ns: NS): Promise<void> {
     if (!clusterFull) {
       // Fill remaining workers with hacks
       for (const target of targets) {
-        const fillHackNbThreads = Math.floor((target.moneyAvailable / 5 / target.hackAmount) * target.hackChance);
-        hackTarget(ns, fillHackNbThreads, fillHackNbThreads, workers, target, null, "FILL-");
+        if (target.fillHackReady) {
+          const fillHackNbThreads = Math.floor((target.moneyAvailable / 5 / target.hackAmount) * target.hackChance);
+          hackTarget(ns, fillHackNbThreads, fillHackNbThreads, workers, target, null, "FILL-");
+        }
       }
 
       for (const worker of workers) {
-        const nbShareThreads = Math.floor(worker.ramFree / shareScriptRam);
+        const nbShareThreads = Math.floor((worker.ramFree * 0.95) / shareScriptRam);
         if (nbShareThreads > 0) {
           execOnWorker(ns, "SHARE", shareScriptName, nbShareThreads, nbShareThreads, worker);
         }

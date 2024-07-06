@@ -3,8 +3,9 @@ import { markdownTable } from "/lib/markdown-table";
 import { listServers } from "/lib/servers";
 
 export async function main(ns: NS): Promise<void> {
+  ns.disableLog("ALL");
+
   while (true) {
-    ns.disableLog("ALL");
     ns.clearLog();
 
     const servers = listServers(ns);

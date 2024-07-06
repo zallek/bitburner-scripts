@@ -1,11 +1,13 @@
 import { NS } from "@ns";
+import { formatDuration, formatProgressBar } from "/lib/format";
 import { markdownTable } from "/lib/markdown-table";
 import { listRunningProcesses } from "/lib/process";
 import { listTargets, listWorkers } from "/lib/servers";
 
 export async function main(ns: NS): Promise<void> {
+  ns.disableLog("ALL");
+
   while (true) {
-    ns.disableLog("ALL");
     ns.clearLog();
 
     const targets = listTargets(ns);
@@ -19,8 +21,8 @@ export async function main(ns: NS): Promise<void> {
         target.path.length,
         ns.formatNumber(target.hackAmountBySeconds, 0),
         ns.formatNumber(target.alpha, 1),
-        ns.formatNumber(target.remainingDifficulty),
-        ns.formatPercent(target.moneyAvailable / target.moneyMax, 2),
+        formatProgressBar(1 - Math.min(target.remainingDifficulty, 50) / 50, 10),
+        formatProgressBar(target.moneyAvailable / target.moneyMax, 10),
         formatRunningProcesses(target.hackReady, runningProcesses["hack.js"]?.[target.hostname], target.hackTime),
         formatRunningProcesses(
           target.weakenNeeded,
@@ -30,22 +32,10 @@ export async function main(ns: NS): Promise<void> {
         formatRunningProcesses(target.growNeeded, runningProcesses["grow.js"]?.[target.hostname], target.growTime),
       ]),
     ];
-    ns.print(markdownTable(table, { align: ["l", "r", "r", "r", "r", "r"] }));
+    ns.print(markdownTable(table, { align: ["l", "r", "r", "r"] }));
 
     await ns.sleep(1000);
   }
-}
-
-function formatDuration(duration: number): string {
-  const seconds = Math.floor(duration / 1000) % 60;
-  const minutes = Math.floor((duration / (1000 * 60)) % 60);
-  const hours = Math.floor(duration / (1000 * 3600));
-
-  let text = "";
-  if (hours > 0) text += `${hours}h `;
-  if (hours > 0 || minutes > 0) text += `${minutes}min `;
-  if (hours > 0 || minutes > 0 || seconds > 0) text += `${seconds}s`;
-  return text;
 }
 
 function formatRunningProcesses(condition: boolean, nbThreads: number, time: number) {

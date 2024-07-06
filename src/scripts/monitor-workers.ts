@@ -1,11 +1,13 @@
 import { NS } from "@ns";
+import { formatProgressBar } from "/lib/format";
 import { markdownTable } from "/lib/markdown-table";
 import { listRunningProcessesOnWorker } from "/lib/process";
-import { listWorkers, Worker } from "/lib/servers";
+import { listWorkers } from "/lib/servers";
 
 export async function main(ns: NS): Promise<void> {
+  ns.disableLog("ALL");
+
   while (true) {
-    ns.disableLog("ALL");
     ns.clearLog();
 
     const workers = listWorkers(ns);
@@ -21,7 +23,7 @@ export async function main(ns: NS): Promise<void> {
         return [
           worker.hostname,
           ns.formatRam(worker.maxRam, 0),
-          formatWorkerUsageBar(ns, worker),
+          formatProgressBar(worker.ramUsed / worker.maxRam, 25),
           Object.values(runningProcesses["hack.js"] || {}).reduce((acc, v) => acc + v, 0) || "",
           Object.values(runningProcesses["weaken.js"] || {}).reduce((acc, v) => acc + v, 0) || "",
           Object.values(runningProcesses["grow.js"] || {}).reduce((acc, v) => acc + v, 0) || "",
@@ -33,13 +35,4 @@ export async function main(ns: NS): Promise<void> {
 
     await ns.sleep(1000);
   }
-}
-
-function formatWorkerUsageBar(ns: NS, worker: Worker): string {
-  const nbSegments = 25;
-  let text = "";
-  for (let i = 0; i < (worker.ramUsed / worker.maxRam) * nbSegments; i++) {
-    text += "/";
-  }
-  return text;
 }

@@ -54,7 +54,7 @@ export interface Worker extends Server {
 }
 
 export function listWorkers(ns: NS): Worker[] {
-  const homeReservedRam = bootScripts.reduce((acc, scriptName) => acc + ns.getScriptRam(scriptName), 0) + 5;
+  const homeReservedRam = bootScripts.reduce((acc, scriptName) => acc + ns.getScriptRam(scriptName), 0) + 20;
 
   const workers: Worker[] = [];
   const servers = listServers(ns);
@@ -97,6 +97,7 @@ export interface Target extends Server {
   hackAmountBySeconds: number;
   hackAmountBySecondsMax: number;
   hackReady: boolean;
+  fillHackReady: boolean;
   alpha: number;
 }
 
@@ -141,13 +142,12 @@ export function listTargets(ns: NS): Target[] {
     const hackAmount = hackPct * server.moneyAvailable;
     const hackAmountBySeconds = (hackAmount * hackChance) / (hackTime / 1000);
     const hackAmountBySecondsMax = (hackPct * server.moneyMax * hackChance) / (hackTime / 1000); // TODO: we should use HackingFormulas to compute real maxHackChance and minHackTime
+    const fillHackReady = remainingDifficulty < 5 && server.moneyAvailable > server.moneyMax * 0.7;
     const hackReady =
       (remainingDifficulty < 2 && server.moneyAvailable > server.moneyMax * 0.8) ||
-      (hackAmountBySeconds / homeMoney > 0.001 &&
-        remainingDifficulty < 5 &&
-        server.moneyAvailable > server.moneyMax * 0.5);
+      (hackAmountBySeconds / homeMoney > 0.001 && fillHackReady);
 
-    const hackFactor = (Math.sqrt(server.serverGrowth || 0) * hackAmountBySeconds) / (server.requiredHackingSkill || 1);
+    const alpha = Math.log(server.serverGrowth || 0) * hackAmountBySeconds; // serverGrowth increase the number of growth threads needed.
 
     targets.push({
       ...server,
@@ -166,7 +166,8 @@ export function listTargets(ns: NS): Target[] {
       hackAmountBySeconds: hackAmountBySeconds,
       hackAmountBySecondsMax: hackAmountBySecondsMax,
       hackReady: hackReady,
-      alpha: hackFactor,
+      fillHackReady: fillHackReady,
+      alpha: alpha,
     });
   }
 
