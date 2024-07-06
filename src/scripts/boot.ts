@@ -6,13 +6,14 @@ export const bootScripts = [
   "/scripts/monitor-targets.js",
   "/scripts/monitor-workers.js",
   "/scripts/monitor-contracts.js",
+  "/scripts/gang.js",
 ];
 
 export async function main(ns: NS): Promise<void> {
-  bootScripts.forEach((script) => {
+  for (const script of bootScripts) {
     if (!ns.isRunning(script)) {
       ns.run(script);
     }
     ns.tail(script);
-  });
+  }
 }
