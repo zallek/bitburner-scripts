@@ -55,10 +55,10 @@ export function mergeOverlappingIntervals(ns: NS, input: number[][]): number[][]
 
 function areIntervalOverlapping(interval1: number[], interval2: number[]): boolean {
   return (
-    (interval1[0] < interval2[0] && interval1[1] > interval2[0] && interval1[1] < interval2[1]) || // [1, 3] [2, 4]
-    (interval2[0] < interval1[0] && interval2[1] > interval1[0] && interval2[1] < interval1[1]) || // [2, 4] [1, 3]
-    (interval1[0] < interval2[0] && interval2[1] > interval2[0] && interval1[1] > interval2[1]) || // [1, 4] [2, 3]
-    (interval2[0] < interval1[0] && interval1[1] > interval2[0] && interval2[1] > interval1[1]) || // [2, 3] [1, 4]
+    (interval1[0] <= interval2[0] && interval1[1] >= interval2[0] && interval1[1] <= interval2[1]) || // [1, 3] [2, 4]
+    (interval2[0] <= interval1[0] && interval2[1] >= interval1[0] && interval2[1] <= interval1[1]) || // [2, 4] [1, 3]
+    (interval1[0] <= interval2[0] && interval2[1] >= interval2[0] && interval1[1] >= interval2[1]) || // [1, 4] [2, 3]
+    (interval2[0] <= interval1[0] && interval1[1] >= interval2[0] && interval2[1] >= interval1[1]) || // [2, 3] [1, 4]
     (interval1[0] === interval2[0] && interval1[1] === interval2[1])
   );
 }
