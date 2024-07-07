@@ -36,7 +36,6 @@ function purchaseOrUpgradeServers(ns: NS): boolean {
     if (homeMoney > ns.getPurchasedServerUpgradeCost(server, maxRam * 2)) {
       if (ns.upgradePurchasedServer(server, maxRam * 2)) {
         ns.print(`Upgraded server ${server} ${ns.formatRam(maxRam * 2)}`);
-        return false;
       }
     }
   }

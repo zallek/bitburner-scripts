@@ -10,45 +10,77 @@ export async function main(ns: NS): Promise<void> {
     if (!ns.gang.inGang()) continue;
 
     const homeMoney = ns.getServerMoneyAvailable("home");
+
     const gangInfo = ns.gang.getGangInformation();
-    const membersNames = ns.gang.getMemberNames();
-    const tasks = ns.gang.getTaskNames().map(ns.gang.getTaskStats);
-    tasks.sort((a, b) => b.hackWeight / b.difficulty - a.hackWeight / a.difficulty);
-    const equipments = ns.gang.getEquipmentNames().map((name) => ({
-      name: name,
-      cost: ns.gang.getEquipmentCost(name),
-      ...ns.gang.getEquipmentStats(name),
-    }));
+
+    const equipments = ns.gang
+      .getEquipmentNames()
+      .map((name) => ({
+        name: name,
+        cost: ns.gang.getEquipmentCost(name),
+        ...ns.gang.getEquipmentStats(name),
+      }))
+      .filter((e) => e.hack || e.cha);
     equipments.sort((a, b) => a.cost - b.cost);
+    const equipmentsByName = equipments.reduce((v, e) => ({ ...v, [e.name]: e }), {});
 
-    ns.print("wantedPenalty ", gangInfo.wantedPenalty, "\n\n");
+    const members = ns.gang.getMemberNames().map((name) => {
+      const memberInfo = ns.gang.getMemberInformation(name);
+      const equipments = [...memberInfo.upgrades, ...memberInfo.augmentations];
+      return {
+        ...memberInfo,
+        equipments: equipments,
+        // @ts-ignore
+        hackEquipements: equipments.filter((e) => equipmentsByName[e].hack),
+        // @ts-ignore
+        chaEquipements: equipments.filter((e) => equipmentsByName[e].cha),
+      };
+    });
+    const membersAllFullyEquiped = members.every((m) => m.equipments.length === equipments.length);
+    members.sort((a, b) => a.equipments.length - b.equipments.length);
 
-    for (const memberName of membersNames) {
-      const memberInfo = ns.gang.getMemberInformation(memberName);
+    const tasks = ns.gang
+      .getTaskNames()
+      .map(ns.gang.getTaskStats)
+      .filter((t) => t.isHacking && (t.baseMoney > 0 || (membersAllFullyEquiped && t.baseRespect > 0)));
+    tasks.sort((a, b) => b.hackWeight / b.difficulty - a.hackWeight / a.difficulty);
 
-      const ascensionResult = ns.gang.getAscensionResult(memberName);
+    ns.print("wantedPenalty ", gangInfo.wantedPenalty);
+    ns.print("\n");
+
+    ns.print(
+      markdownTable([
+        ["", ...members.map((m) => m.name)],
+        ["hack", ...members.map((m) => m.hackEquipements.length)],
+        ["cha", ...members.map((m) => m.chaEquipements.length)],
+      ])
+    );
+    ns.print("\n");
+
+    for (const member of members) {
+      const ascensionResult = ns.gang.getAscensionResult(member.name);
       if (ascensionResult && ascensionResult.hack > 2) {
-        ns.gang.ascendMember(memberName);
+        ns.gang.ascendMember(member.name);
       }
 
-      const task = chooseTask(ns, gangInfo, memberInfo, tasks);
-      if (memberInfo.task !== task.name) {
-        ns.gang.setMemberTask(memberName, task.name);
+      const task = chooseTask(ns, gangInfo, member, tasks);
+      if (member.task !== task.name) {
+        ns.gang.setMemberTask(member.name, task.name);
       }
 
       for (const equipment of equipments) {
         if (
           homeMoney > equipment.cost &&
           (equipment.hack || (task.chaWeight > 0 && equipment.cha)) &&
-          ![...memberInfo.upgrades, memberInfo.augmentations].includes(equipment.name)
+          !member.equipments.includes(equipment.name)
         ) {
-          ns.gang.purchaseEquipment(memberName, equipment.name);
+          ns.gang.purchaseEquipment(member.name, equipment.name);
         }
       }
     }
 
     if (ns.gang.canRecruitMember()) {
-      ns.gang.recruitMember(`member-${membersNames.length}`);
+      ns.gang.recruitMember(`member-${members.length + 1}`);
     }
 
     ns.print(
@@ -74,7 +106,7 @@ export async function main(ns: NS): Promise<void> {
 
 function chooseTask(ns: NS, gangInfo: GangGenInfo, memberInfo: GangMemberInfo, tasks: GangTaskStats[]): GangTaskStats {
   const availableTasks = tasks.filter((task) => {
-    return task.isHacking && task.baseMoney > 0 && (task.difficulty == 1 || memberInfo.hack >= task.difficulty * 100);
+    return task.difficulty == 1 || memberInfo.hack >= task.difficulty * 100;
   });
   const tasksLoweringWanted = availableTasks.filter((task) => task.baseWanted < 0);
   const tasksIncreasingRespect = availableTasks.filter((task) => task.baseRespect > 0);

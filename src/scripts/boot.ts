@@ -4,7 +4,7 @@ export const bootScripts = [
   "/scripts/scheduler.js",
   "/scripts/purchase-servers.js",
   "/scripts/monitor-targets.js",
-  "/scripts/monitor-workers.js",
+  // "/scripts/monitor-workers.js",
   "/scripts/monitor-contracts.js",
   "/scripts/gang.js",
 ];
