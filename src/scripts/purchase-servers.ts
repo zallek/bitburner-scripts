@@ -20,7 +20,7 @@ function purchaseOrUpgradeServers(ns: NS): boolean {
   if (servers.length < ns.getPurchasedServerLimit()) {
     // Check if we have enough money to purchase a server
     if (homeMoney > ns.getPurchasedServerCost(2)) {
-      const server = "pserv-" + String(servers.length).padStart(3, "0");
+      const server = "pserv-" + String(servers.length + 1).padStart(3, "0");
       if (ns.purchaseServer(server, 2)) {
         ns.print(`Purchased server ${server} 2GB`);
         return false;

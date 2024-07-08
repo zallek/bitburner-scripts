@@ -16,6 +16,8 @@ function getNbPortsSupported(ns: NS) {
   for (const portHack of portHacks(ns)) {
     if (ns.fileExists(portHack.program)) {
       nbPortsSupported++;
+    } else {
+      break;
     }
   }
   return nbPortsSupported;

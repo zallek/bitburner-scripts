@@ -54,7 +54,7 @@ export interface Worker extends Server {
 }
 
 export function listWorkers(ns: NS): Worker[] {
-  const homeReservedRam = bootScripts.reduce((acc, scriptName) => acc + ns.getScriptRam(scriptName), 0) + 20;
+  const homeReservedRam = bootScripts.reduce((acc, scriptName) => acc + ns.getScriptRam(scriptName), 0) + 50;
 
   const workers: Worker[] = [];
   const servers = listServers(ns);
