@@ -36,7 +36,7 @@ export async function main(ns: NS): Promise<void> {
         chaEquipements: equipments.filter((e) => equipmentsByName[e].cha),
       };
     });
-    const membersAllFullyEquiped = members.every((m) => m.equipments.length === equipments.length);
+    const membersAllFullyEquiped = false; // members.every((m) => m.equipments.length === equipments.length);
     members.sort((a, b) => a.equipments.length - b.equipments.length);
 
     const tasks = ns.gang

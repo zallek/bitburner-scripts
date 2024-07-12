@@ -13,6 +13,7 @@ export async function main(ns: NS): Promise<void> {
     const targets = listTargets(ns);
     const workers = listWorkers(ns);
     const runningProcesses = listRunningProcesses(ns, workers);
+    targets.sort((a, b) => a.hostname.localeCompare(b.hostname));
 
     const table = [
       [`targets ${targets.length}`, "depth", "$/sec", "α", "security", "money", "hack", "weak", "grow"],
@@ -21,8 +22,12 @@ export async function main(ns: NS): Promise<void> {
         target.path.length,
         ns.formatNumber(target.hackAmountBySeconds, 0),
         ns.formatNumber(target.alpha, 1),
-        formatProgressBar(1 - Math.min(target.remainingDifficulty, 50) / 50, 10),
-        formatProgressBar(target.moneyAvailable / target.moneyMax, 10),
+        formatProgressBar(1 - Math.min(target.remainingDifficulty, 50) / 50, 10) +
+          " " +
+          ns.formatNumber(target.remainingDifficulty),
+        formatProgressBar(target.moneyAvailable / target.moneyMax, 10) +
+          " " +
+          ns.formatNumber(target.moneyAvailable / target.moneyMax),
         formatRunningProcesses(target.hackReady, runningProcesses["hack.js"]?.[target.hostname], target.hackTime),
         formatRunningProcesses(
           target.weakenNeeded,

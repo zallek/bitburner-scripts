@@ -1,12 +1,12 @@
 import { NS } from "@ns";
 
 export const bootScripts = [
-  "/scripts/scheduler.js",
+  "/scripts/scheduler-burst.js",
   "/scripts/purchase-servers.js",
   "/scripts/monitor-targets.js",
   // "/scripts/monitor-workers.js",
   "/scripts/monitor-contracts.js",
-  "/scripts/gang.js",
+  // "/scripts/gang.js",
 ];
 
 export async function main(ns: NS): Promise<void> {

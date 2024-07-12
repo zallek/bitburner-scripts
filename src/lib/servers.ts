@@ -1,4 +1,5 @@
 import { NS, Server as NSServer } from "@ns";
+import { hasFormulas } from "/lib/formulas";
 import { openAllServerPorts } from "/lib/ports";
 import { bootScripts } from "/scripts/boot";
 
@@ -89,6 +90,7 @@ export interface Target extends Server {
   weakenNeeded: boolean;
   moneyMax: number;
   moneyAvailable: number;
+  moneyRatio: number;
   growTime: number;
   growNeeded: boolean;
   hackTime: number;
@@ -101,6 +103,7 @@ export interface Target extends Server {
   alpha: number;
 }
 
+/** @param {NS} ns */
 export function listTargets(ns: NS): Target[] {
   const targets: Target[] = [];
   const servers = listServers(ns);
@@ -123,11 +126,14 @@ export function listTargets(ns: NS): Target[] {
     if (
       server.minDifficulty === undefined ||
       server.hackDifficulty === undefined ||
+      server.moneyAvailable === undefined ||
       server.moneyMax === undefined ||
-      !server.moneyAvailable
+      server.moneyMax === 0
     ) {
       continue;
     }
+
+    const player = ns.getPlayer();
 
     const remainingDifficulty = server.hackDifficulty - server.minDifficulty;
     const weakenTime = ns.getWeakenTime(server.hostname);
@@ -141,13 +147,24 @@ export function listTargets(ns: NS): Target[] {
     const hackChance = ns.hackAnalyzeChance(server.hostname);
     const hackAmount = hackPct * server.moneyAvailable;
     const hackAmountBySeconds = (hackAmount * hackChance) / (hackTime / 1000);
-    const hackAmountBySecondsMax = (hackPct * server.moneyMax * hackChance) / (hackTime / 1000); // TODO: we should use HackingFormulas to compute real maxHackChance and minHackTime
+
+    const serverWeaken = {
+      ...server,
+      hackDifficulty: server.minDifficulty,
+    };
+    const hackAmountBySecondsMax = hasFormulas(ns)
+      ? (ns.formulas.hacking.hackPercent(serverWeaken, player) *
+          server.moneyMax *
+          ns.formulas.hacking.hackChance(serverWeaken, player)) /
+        (ns.formulas.hacking.hackTime(serverWeaken, player) / 1000)
+      : (hackPct * server.moneyMax * hackChance) / (hackTime / 1000);
+
     const fillHackReady = remainingDifficulty < 5 && server.moneyAvailable > server.moneyMax * 0.7;
     const hackReady =
       (remainingDifficulty < 2 && server.moneyAvailable > server.moneyMax * 0.8) ||
       (hackAmountBySeconds / homeMoney > 0.001 && fillHackReady);
 
-    const alpha = Math.log(server.serverGrowth || 0) * hackAmountBySeconds; // serverGrowth increase the number of growth threads needed.
+    const alpha = Math.log(server.serverGrowth || 0) * hackAmountBySecondsMax; // serverGrowth increase the number of growth threads needed.
 
     targets.push({
       ...server,
@@ -158,6 +175,7 @@ export function listTargets(ns: NS): Target[] {
       weakenNeeded: weakenNeeded,
       moneyMax: server.moneyMax,
       moneyAvailable: server.moneyAvailable,
+      moneyRatio: server.moneyAvailable / server.moneyMax,
       growTime: growTime,
       growNeeded: growNeeded,
       hackTime: hackTime,
